@@ -20,9 +20,15 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
 
     dic = {}
     def register2json(self):
+        """
+        Escribe en un fichero json
+        """
         json.dump(self.dic, open('registered.json', 'w'))
 
     def json2registered(self):
+        """
+        Comprueba si hay fichero json
+        """
         try:
             with open('registered.json', 'r') as file:
                 self.dic = json.load(file)
@@ -31,6 +37,9 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
             pass
 
     def expiration (self):
+        """
+        Borra elementos expirados
+        """
         expired = []
         time_exp = strftime('%Y-%m-%d %H:%M:%S',gmtime(time()))
         for user in self.dic:
@@ -40,14 +49,14 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
             del self.dic[user]
 
     def handle(self): 
-        if self.dic == {}:
-            self.json2registered()
-
-        self.expiration()
         """
         handle method of the server class
         (all requests will be handled by this method)
         """
+        if self.dic == {}:
+            self.json2registered()
+
+        self.expiration()
         self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
         print(self.client_address) #imprimir puerto e IP
         for line in self.rfile:
