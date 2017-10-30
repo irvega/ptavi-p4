@@ -3,7 +3,7 @@
 """
 Clase (y programa principal) para un servidor de eco en UDP simple
 """
-
+from time import gmtime, strftime, time
 import json
 import socketserver
 import sys
@@ -20,10 +20,27 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
 
     dic = {}
     def register2json(self):
-        
         json.dump(self.dic, open('registered.json', 'w'))
-    
-    def handle(self):    
+
+    def json2registered(self):
+        try:
+            with open('registered.json', 'r') as file:
+                self.dic = json.load(file)
+                self.expiration()
+        except:
+            pass
+
+    def expiration (self):
+        expired = []
+        time_exp = strftime('%Y-%m-%d %H:%M:%S',gmtime(time()))
+        for user in self.dic:
+            if self.dic[user][1] <= time_exp:
+                expired.append(user)
+        for user in expired:
+            del self.dic[user]
+
+    def handle(self): 
+        self.expiration()
         """
         handle method of the server class
         (all requests will be handled by this method)
@@ -34,9 +51,13 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
             if line:
                 if line.decode('utf-8')[:8] == 'REGISTER':
                     user = line.decode('utf-8')[13:-10]
-                    self.dic[user] = self.client_address[0]
+                    ip = self.client_address[0]
                 elif line.decode('utf-8')[:7] == 'Expires':
-                    if line.decode('utf-8').split(' ')[1][0] == '0':
+                    expires = int(line.decode('utf-8')[9:])+time()
+                    expire = strftime('%Y-%m-%d %H:%M:%S', gmtime(expires))
+                    if line.decode('utf-8').split(' ')[1][0] != '0':
+                        self.dic[user] = [ip, expire]
+                    else:
                         del self.dic[user]
             print(line.decode('utf-8'),end='')
         print(self.dic)
