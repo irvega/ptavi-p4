@@ -9,15 +9,15 @@ import socketserver
 import sys
 
 
-PORT = int(sys.argv[1])
 class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
     """
     Echo server class
     """
-    if len(sys.argv)!=2:
+    if len(sys.argv) != 2:
         sys.exit(' Use:python3 server.py port')
 
     dic = {}
+
     def register2json(self):
         """
         Escribe en un fichero json
@@ -35,19 +35,19 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
         except(FileNotFoundError):
             pass
 
-    def expiration (self):
+    def expiration(self):
         """
         Borra elementos expirados
         """
         expired = []
-        time_exp = strftime('%Y-%m-%d %H:%M:%S',gmtime(time()))
+        time_exp = strftime('%Y-%m-%d %H:%M:%S', gmtime(time()))
         for user in self.dic:
             if self.dic[user][1] <= time_exp:
                 expired.append(user)
         for user in expired:
             del self.dic[user]
 
-    def handle(self): 
+    def handle(self):
         """
         handle method of the server class
         (all requests will be handled by this method)
@@ -73,13 +73,13 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
                             del self.dic[user]
                         except(KeyError):
                             print('  NOTICE: This user dont exist!')
-            print(line.decode('utf-8'),end='')
+            print(line.decode('utf-8'), end='')
         print(self.dic)
         self.register2json()
 
+PORT = int(sys.argv[1])
 if __name__ == "__main__":
-    serv = socketserver.UDPServer(('', PORT), SIPRegistrerHandler) 
-
+    serv = socketserver.UDPServer(('', PORT), SIPRegistrerHandler)
     print("Lanzando servidor UDP de eco...")
     try:
         serv.serve_forever()
