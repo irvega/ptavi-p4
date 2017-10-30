@@ -28,7 +28,7 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
                 self.dic = json.load(file)
                 self.expiration()
         except(FileNotFoundError):
-            print('NOOOOOO')
+            pass
 
     def expiration (self):
         expired = []
@@ -40,6 +40,9 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
             del self.dic[user]
 
     def handle(self): 
+        if self.dic == {}:
+            self.json2registered()
+
         self.expiration()
         """
         handle method of the server class
@@ -58,7 +61,10 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
                     if line.decode('utf-8').split(' ')[1][0] != '0':
                         self.dic[user] = [ip, expire]
                     else:
-                        del self.dic[user]
+                        try:
+                            del self.dic[user]
+                        except(KeyError):
+                            print('  NOTICE: This user dont exist!')
             print(line.decode('utf-8'),end='')
         print(self.dic)
         self.register2json()
