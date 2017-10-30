@@ -13,9 +13,6 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
     """
     Echo server class
     """
-    if len(sys.argv) != 2:
-        sys.exit(' Use:python3 server.py port')
-
     dic = {}
 
     def register2json(self):
@@ -59,26 +56,27 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
         self.wfile.write(b"SIP/2.0 200 OK\r\n\r\n")
         print(self.client_address)
         for line in self.rfile:
-            if line:
-                if line.decode('utf-8')[:8] == 'REGISTER':
-                    user = line.decode('utf-8')[13:-10]
-                    ip = self.client_address[0]
-                elif line.decode('utf-8')[:7] == 'Expires':
-                    expires = int(line.decode('utf-8')[9:])+time()
-                    expire = strftime('%Y-%m-%d %H:%M:%S', gmtime(expires))
-                    if line.decode('utf-8').split(' ')[1][0] != '0':
-                        self.dic[user] = [ip, expire]
-                    else:
-                        try:
-                            del self.dic[user]
-                        except(KeyError):
-                            print('  NOTICE: This user dont exist!')
+            if line and line.decode('utf-8')[:8] == 'REGISTER':
+                user = line.decode('utf-8')[13:-10]
+                ip = self.client_address[0]
+            elif line and line.decode('utf-8')[:7] == 'Expires':
+                expires = int(line.decode('utf-8')[9:])+time()
+                expire = strftime('%Y-%m-%d %H:%M:%S', gmtime(expires))
+                if line.decode('utf-8').split(' ')[1][0] != '0':
+                    self.dic[user] = [ip, expire]
+                else:
+                    try:
+                        del self.dic[user]
+                    except(KeyError):
+                        print('  NOTICE: This user dont exist!')
             print(line.decode('utf-8'), end='')
         print(self.dic)
         self.register2json()
 
-PORT = int(sys.argv[1])
 if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        sys.exit(' Use:python3 server.py port')
+    PORT = int(sys.argv[1])
     serv = socketserver.UDPServer(('', PORT), SIPRegistrerHandler)
     print("Lanzando servidor UDP de eco...")
     try:
