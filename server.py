@@ -27,8 +27,8 @@ class SIPRegistrerHandler(socketserver.DatagramRequestHandler):
             with open('registered.json', 'r') as file:
                 self.dic = json.load(file)
                 self.expiration()
-        except:
-            pass
+        except(FileNotFoundError):
+            print('NOOOOOO')
 
     def expiration (self):
         expired = []
